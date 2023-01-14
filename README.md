@@ -1,5 +1,5 @@
 # deflate
-A simplified implementation of the [DEFLATE algorithm](https://en.wikipedia.org/wiki/Deflate).
+A pure Haskell file compressor / decompressor using the [DEFLATE algorithm](https://en.wikipedia.org/wiki/Deflate).
 
 ## Usage
 ### Flags
