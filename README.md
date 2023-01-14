@@ -7,5 +7,5 @@ A simplified implementation of the [DEFLATE algorithm](https://en.wikipedia.org/
 * `-o`, `--output`, or if none specified, `stdout`
 * `-e`, `--compress`
 * `-d`, `--decompress`
-* `-c`, `--char`, do compression at the character granularity
+* `-c`, `--char`, do compression at the character granularity. This is the default.
 * `-w`, `--word`, do compression at the word (stream of characters delimited by whitespace (space, tab, newline)) granularity
