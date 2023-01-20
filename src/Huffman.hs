@@ -1,10 +1,14 @@
 -- GHC extensions
 
 -----------------------------------------------------------------------------
-module Huffman where
+module Huffman ( HuffmanTree ) where
 
 -----------------------------------------------------------------------------
 
--- imports
+import qualified Data.Map as Map
+
+import Unit ( Unit(..) )
 
 -----------------------------------------------------------------------------
+
+type HuffmanTree a = Map.Map a Int

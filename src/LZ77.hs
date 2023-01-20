@@ -5,6 +5,14 @@ module LZ77 where
 
 -----------------------------------------------------------------------------
 
--- imports
+import Unit ( Unit(..) )
 
 -----------------------------------------------------------------------------
+
+data LZ77Triple a
+  = LZ77Triple { offset :: Int
+               , length :: Int
+               , value :: a
+               }
+
+type LZ77Compressed a = [LZ77Triple a]

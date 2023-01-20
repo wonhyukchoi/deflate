@@ -21,6 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/wonh
 
 dependencies:
 - base >= 4.7 && < 5
+- text
+- containers
 
 ghc-options:
 - -Wall
@@ -46,6 +48,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - hzip
+    - optparse-applicative
 
 tests:
   hzip-test:
