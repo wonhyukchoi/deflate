@@ -1,18 +1,29 @@
 -- GHC extensions
 
 -----------------------------------------------------------------------------
-module LZ77 where
+module LZ77 ( Encoding ) where
 
 -----------------------------------------------------------------------------
 
-import Unit ( Unit(..) )
+import qualified Base
+
+import Numeric.Natural ( Natural )
+import Base ( Unit(..), uncons )
 
 -----------------------------------------------------------------------------
 
-data LZ77Triple a
-  = LZ77Triple { offset :: Int
-               , length :: Int
-               , value :: a
-               }
+data LZ77 a = LZ77
+  { offset :: Natural,
+    length :: Natural,
+    value :: a
+  }
+  deriving (Show)
 
-type LZ77Compressed a = [LZ77Triple a]
+newtype Encoding a = Encoding [LZ77 a] deriving (Show)
+
+instance Base.Encoding Encoding where
+  compress :: Unit x xs -> xs -> Encoding x
+  compress = undefined
+
+  decompress :: Encoding x -> xs 
+  decompress = undefined

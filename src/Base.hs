@@ -1,7 +1,7 @@
-{-# LANGUAGE GADTs, StandaloneDeriving, LambdaCase, TypeFamilies #-}
+{-# LANGUAGE GADTs, StandaloneDeriving, TypeFamilies #-}
 
 -----------------------------------------------------------------------------
-module Unit ( Streamable(..), Unit(..), next ) where
+module Base ( Streamable(..), Unit(..), Encoding(..) ) where
 
 -----------------------------------------------------------------------------
 
@@ -31,7 +31,6 @@ data Unit x xs where
 
 deriving instance Show (Unit x xs)
 
-next :: Unit x xs -> xs -> Maybe (x, xs)
-next = \case
-  Character -> Text.uncons
-  Word -> List.uncons
+class Encoding encoding where
+  compress :: Unit x xs -> xs -> encoding x
+  decompress :: encoding x -> xs 
