@@ -9,17 +9,22 @@ import qualified Data.Map as Map
 import qualified Base
 
 import Numeric.Natural ( Natural )
-import Base ( Unit(..), uncons )
+import Base ( Streamable(..), uncons )
 
 -----------------------------------------------------------------------------
 
-type HuffmanTree a = Map.Map a Natural
+type Frequencies a = Map.Map a Natural
+
+data HuffmanTree a
+  = Leaf a Natural
+  | Tree a Natural (HuffmanTree a) (HuffmanTree a)
+  deriving (Show)
 
 newtype Encoding a = Encoding (HuffmanTree a, [a]) deriving (Show)
 
 instance Base.Encoding Encoding where
-  compress :: Unit x xs -> xs -> Encoding x
+  compress :: Streamable s => s -> encoding (Piece s)
   compress = undefined
 
-  decompress :: Encoding x -> xs 
+  decompress :: encoding a -> [a]
   decompress = undefined

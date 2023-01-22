@@ -1,7 +1,7 @@
-{-# LANGUAGE GADTs, StandaloneDeriving, TypeFamilies #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -----------------------------------------------------------------------------
-module Base ( Streamable(..), Unit(..), Encoding(..) ) where
+module Base ( Streamable(..), Encoding(..) ) where
 
 -----------------------------------------------------------------------------
 
@@ -19,18 +19,13 @@ class Streamable s where
 
 instance Streamable Text where
   type Piece Text = Char
+  uncons :: Text -> Maybe (Piece Text, Text)
   uncons = Text.uncons
 
 instance Streamable [a] where
   type Piece [a] = a
   uncons = List.uncons
 
-data Unit x xs where
-  Character :: Unit Char Text
-  Word :: Unit Text [Text]
-
-deriving instance Show (Unit x xs)
-
 class Encoding encoding where
-  compress :: Unit x xs -> xs -> encoding x
-  decompress :: encoding x -> xs 
+  compress :: Streamable s => s -> encoding (Piece s)
+  decompress :: encoding a -> [a]
