@@ -1,2 +1,10 @@
+-----------------------------------------------------------------------------
+
+import Test.Hspec ( hspec )
+
+import qualified Test.PriorityQueue as PriorityQueue
+
+-----------------------------------------------------------------------------
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main =  hspec PriorityQueue.test
