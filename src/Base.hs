@@ -19,7 +19,6 @@ class Streamable s where
 
 instance Streamable Text where
   type Piece Text = Char
-  uncons :: Text -> Maybe (Piece Text, Text)
   uncons = Text.uncons
 
 instance Streamable [a] where

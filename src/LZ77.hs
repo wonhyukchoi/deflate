@@ -8,7 +8,7 @@ module LZ77 ( Encoding ) where
 import qualified Base
 
 import Numeric.Natural ( Natural )
-import Base ( Unit(..), uncons )
+import Base ( uncons )
 
 -----------------------------------------------------------------------------
 
@@ -22,8 +22,6 @@ data LZ77 a = LZ77
 newtype Encoding a = Encoding [LZ77 a] deriving (Show)
 
 instance Base.Encoding Encoding where
-  compress :: Streamable s => s -> encoding (Piece s)
   compress = undefined
 
-  decompress :: encoding a -> [a]
   decompress = undefined
