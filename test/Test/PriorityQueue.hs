@@ -14,7 +14,7 @@ import PriorityQueue ( PriorityQueue, enqueue, dequeue, empty )
 -----------------------------------------------------------------------------
 
 sort :: Ord a => [a] -> [a]
-sort xs = let (sorted, _) = sort' [] pq in reverse sorted
+sort xs = let (nondescreasing, _) = sort' [] pq in reverse nondescreasing
   where pq = foldr enqueue empty xs
         sort' :: Ord a => [a] -> PriorityQueue a -> ([a], PriorityQueue a)
         sort' xs pq = case dequeue pq of

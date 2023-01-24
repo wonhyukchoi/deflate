@@ -29,7 +29,6 @@ library
       Huffman
       LZ77
       PriorityQueue
-      Unit
   other-modules:
       Paths_hzip
   hs-source-dirs:

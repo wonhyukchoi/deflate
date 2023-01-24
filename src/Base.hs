@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 -----------------------------------------------------------------------------
 module Base ( Streamable(..), Encoding(..) ) where
@@ -26,5 +27,5 @@ instance Streamable [a] where
   uncons = List.uncons
 
 class Encoding encoding where
-  compress :: Streamable s => s -> encoding (Piece s)
+  compress :: (Streamable s, Ord (Piece s)) => s -> encoding (Piece s)
   decompress :: encoding a -> [a]
