@@ -59,6 +59,7 @@ test-suite hzip-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test.Huffman
       Test.PriorityQueue
       Paths_hzip
   hs-source-dirs:

@@ -28,4 +28,4 @@ instance Streamable [a] where
 
 class Encoding encoding where
   compress :: (Streamable s, Ord (Piece s)) => s -> encoding (Piece s)
-  decompress :: encoding a -> [a]
+  decompress :: (Show a) => encoding a -> [a]

@@ -85,7 +85,15 @@ indexTree = go []
 encode :: Ord a => a -> EncodingTable a -> Maybe EncodedValue
 encode = Map.lookup
 
-newtype Encoding a = Encoding (Maybe (EncodingTable a, [EncodedValue]))
+decode :: Show a => [Direction] -> HuffmanTree a -> a
+decode directions tree = case (directions, tree) of
+  ([], Leaf _ a) -> a
+  (dir:dirs, Tree _ left right) -> case dir of
+    TreeLeft -> decode dirs left
+    TreeRight -> decode dirs right
+  _ -> error $ unwords ["Invalid combo:",  show directions, show tree]
+
+newtype Encoding a = Encoding (Maybe (HuffmanTree a, [EncodedValue]))
   deriving (Show)
 
 instance Base.Encoding Encoding where
@@ -96,7 +104,9 @@ instance Base.Encoding Encoding where
           lookup k = case encode k encoder of
             Nothing -> error "This should never happen"
             Just v  -> v
-      in Just (encoder , map lookup $ unfoldr uncons stream)
+      in Just (tree , map lookup $ unfoldr uncons stream)
     where freqs = fromPQ $ frequencyQueue $ frequencies stream
 
-  decompress = undefined
+  decompress (Encoding e) = case e of
+    Nothing -> []
+    Just (encoder, encoded) -> map (flip decode encoder) encoded
