@@ -38,6 +38,7 @@ library
       base >=4.7 && <5
     , containers
     , text
+    , transformers
   default-language: Haskell2010
 
 executable hzip-exe
@@ -53,6 +54,7 @@ executable hzip-exe
     , hzip
     , optparse-applicative
     , text
+    , transformers
   default-language: Haskell2010
 
 test-suite hzip-test
@@ -72,4 +74,5 @@ test-suite hzip-test
     , hspec
     , hzip
     , text
+    , transformers
   default-language: Haskell2010

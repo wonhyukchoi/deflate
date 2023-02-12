@@ -15,12 +15,9 @@ import Huffman ( Encoding )
 -- | Property that encode . decode == id.
 --   QuickCheck does not natively implement Text, so we use String.
 prop_inverse :: String -> Bool
-prop_inverse txt = txt == decoded
+prop_inverse txt = txt == decompress encoded
   where encoded :: Encoding Char
         encoded = compress txt
-
-        decoded :: String
-        decoded = decompress encoded
 
 test :: SpecWith ()
 test = describe "Huffman encoding test" $ do
