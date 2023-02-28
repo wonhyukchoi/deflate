@@ -1,8 +1,22 @@
 # deflate
 A pure Haskell file compressor / decompressor using the [DEFLATE algorithm](https://en.wikipedia.org/wiki/Deflate).
 
+## Installation
+The recommended installation is through [Haskell Stack](https://docs.haskellstack.org/en/stable/).
+You can either install [Stack directly](https://docs.haskellstack.org/en/stable/#how-to-install-stack) or [GHCup](https://www.haskell.org/ghcup/)(recommended).
+
+Once you have Stack, just type
+```
+stack install hzip
+```
+and `hzip` should be copied onto your path.
+
 ## Usage
 ### Flags
+#### Implemented
+Nothing here :(
+
+#### Unimplemented
 * `-i`, `--input`
 * `-o`, `--output`, or if none specified, `stdout`
 * `-e`, `--compress`
@@ -17,15 +31,7 @@ A pure Haskell file compressor / decompressor using the [DEFLATE algorithm](http
     * Higher greed results in longer compression times, but smaller files. 
     * Greediness of 0 results in an uncompressed file. Greed of 10 for big files may not terminate.
 
+#### Unimplemented
+
 ## Benchmarks
-Probably populated here after the tool is built.
-
-## Installation
-The recommended installation is through [Haskell Stack](https://docs.haskellstack.org/en/stable/).
-You can either install [Stack directly](https://docs.haskellstack.org/en/stable/#how-to-install-stack) or [GHCup](https://www.haskell.org/ghcup/)(recommended).
-
-Once you have Stack, just type
-```
-stack install hzip
-```
-and `hzip` should be copied onto your path.
+Mostly a TODO.

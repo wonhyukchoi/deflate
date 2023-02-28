@@ -5,10 +5,10 @@ module Main ( main ) where
 
 -----------------------------------------------------------------------------
 
-import qualified Data.Text as Text
-import qualified Data.Text.IO as Text
+-- import qualified Data.Text as Text
+-- import qualified Data.Text.IO as Text
 
 -----------------------------------------------------------------------------
 
 main :: IO ()
-main = putStrLn "Hello, World!"
+main = putStrLn "done"

@@ -1,24 +1,26 @@
 -----------------------------------------------------------------------------
 
-module Test.Huffman ( test ) where
+module Test.LZ77 ( test ) where
 
 -----------------------------------------------------------------------------
 
-import Test.QuickCheck ( property )
+import Test.QuickCheck ( Property, property, (==>) )
 import Test.Hspec ( SpecWith, describe, it )
 
 import Base ( compress, decompress )
-import Huffman ( Encoding )
+import LZ77 ( Encoding )
+
+import Debug.Trace ( trace )
 
 -----------------------------------------------------------------------------
 
 -- | Property that encode . decode == id.
 --   QuickCheck does not natively implement Text, so we use String.
-prop_inverse :: String -> Bool
-prop_inverse txt = txt == decompress encoded
+prop_inverse :: String -> Property
+prop_inverse txt = not (null txt) ==> txt == decompress encoded
   where encoded :: Encoding Char
         encoded = compress txt
 
 test :: SpecWith ()
-test = describe "Huffman encode/decode inverse test" $ do
+test = describe "LZ77 encode/decode inverse test" $ do
   it "checking..." $ property prop_inverse

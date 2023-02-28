@@ -23,11 +23,6 @@ class Streamable s where
   empty :: s -> Bool
   empty = isNothing . uncons
 
-  isSingleton :: s -> Bool
-  isSingleton s = case uncons s of
-    Nothing -> False
-    Just (_, s') -> empty s'
-
   unpack :: s -> [Piece s]
   unpack stream = reverse $ unpack' [] stream
     where unpack' :: [Piece s] -> s -> [Piece s]

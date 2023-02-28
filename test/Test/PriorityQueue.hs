@@ -17,9 +17,9 @@ sort :: Ord a => [a] -> [a]
 sort xs = let (nondescreasing, _) = sort' [] pq in reverse nondescreasing
   where pq = foldr enqueue empty xs
         sort' :: Ord a => [a] -> PriorityQueue a -> ([a], PriorityQueue a)
-        sort' xs pq = case dequeue pq of
-          Nothing -> (xs, pq)
-          Just (x, pq') -> sort' (x:xs) pq'
+        sort' ys pq' = case dequeue pq' of
+          Nothing -> (ys, pq')
+          Just (y, pq'') -> sort' (y:ys) pq''
 
 -- | Property that enqueueing into a PQ and dequeueing results in sorting
 --   A more general type signature is Ord a => [a] -> Bool,
