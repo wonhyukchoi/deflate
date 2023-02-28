@@ -16,7 +16,7 @@ import Control.Exception ( assert )
 import Data.Tuple ( swap )
 import Numeric.Natural ( Natural )
 
-import Base ( Streamable(..), uncons )
+import Base ( Streamable(Piece), uncons )
 import PriorityQueue ( PriorityQueue, empty, enqueue, dequeue )
 
 -----------------------------------------------------------------------------
@@ -101,10 +101,10 @@ instance Base.Encoding Encoding where
     Nothing -> assert (isNothing (uncons stream)) Nothing
     Just tree ->
       let encoder  = indexTree tree
-          lookup k = case encode k encoder of
+          lookupKey k = case encode k encoder of
             Nothing -> error "This should never happen"
             Just v  -> v
-      in Just (tree , map lookup $ unfoldr uncons stream)
+      in Just (tree , map lookupKey $ unfoldr uncons stream)
     where freqs = fromPQ $ frequencyQueue $ frequencies stream
 
   decompress (Encoding e) = case e of

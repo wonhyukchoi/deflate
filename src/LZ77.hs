@@ -1,5 +1,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
 -----------------------------------------------------------------------------
 module LZ77 ( Encoding ) where
@@ -8,20 +12,38 @@ module LZ77 ( Encoding ) where
 
 import qualified Base
 
-import Data.List ( tails )
-import Control.Monad ( when )
-import Control.Monad.Trans.State (State
-                                 , runState
-                                 , execState
-                                 , get
-                                 , gets
-                                 , put
-                                 , modify
-                                 )
+import qualified Data.Sequence as Seq
+import qualified Data.List as List
+
+import Prelude hiding ( drop, take, length )
+import Data.Foldable (toList)
+import Data.Sequence ( Seq
+                     , tails
+                     , singleton
+                     , fromList
+                     , drop
+                     , take
+                     , (|>)
+                     , (><)
+                     )
 import Numeric.Natural ( Natural )
 import Base ( Streamable(..) )
 
 -----------------------------------------------------------------------------
+
+pattern Empty :: Seq a
+pattern Empty   <- (Seq.viewl -> Seq.EmptyL)  where Empty = Seq.empty
+
+pattern (:<) :: a -> Seq a -> Seq a
+pattern x :< xs <- (Seq.viewl -> x Seq.:< xs) where (:<)  = (Seq.<|) 
+
+-- | Seq[begin:end), includes start but excludes end.
+subseq :: Natural -> Natural -> Seq a -> Seq a
+subseq begin end seq' = subseq'
+  where begin' = fromIntegral begin
+        end' = fromIntegral end
+        starts = drop begin' seq'
+        subseq' = take (end' - begin' - 1) starts
 
 data Match a = Match
   { offset :: Natural,
@@ -30,76 +52,107 @@ data Match a = Match
   }
   deriving (Show)
 
+type Encoded a = [Match a]
+
 instance Eq (Match a) where
   Match _ len1 _ == Match _ len2 _ = len1 == len2
 
 instance Ord (Match a) where
   Match _ len1 _ `compare` Match _ len2 _ = len1 `compare` len2
 
-type Dict a = [a]
+type Dict = Seq
 
-data LZ77 stream piece = LZ77
-  { encoded :: [Match piece]
-  , dict :: Dict piece
+data Progress stream piece = Progress
+  { dict:: Dict piece
   , remaining :: stream
   }
 
-updateDict :: Dict piece -> LZ77 stream piece -> LZ77 stream piece
-updateDict newDict LZ77{..} = LZ77 encoded newDict remaining
-
-type LZ77State stream piece = State (LZ77 stream piece) (Match piece)
+finished :: Streamable stream => Progress stream piece -> Bool
+finished Progress{..} = empty remaining
 
 dictSize :: Int
 dictSize = 6
 
-encode :: forall a. (Eq (Piece a), Streamable a) => LZ77State a (Piece a)
-encode = do
-  st@LZ77{..} <- get
-  if empty remaining
-    then return $ head encoded
-    else do
-      let dicts :: [(Natural, Dict (Piece a))]
-          dicts = zipWith
-            (\offset dict -> (offset, dict ++ unpacked))
-            [1..]
-            (tails dict)
-            where unpacked = unpack remaining
-
-          maxMatch :: LZ77State a (Piece a)
-          maxMatch = maximum <$> traverse runMatch dicts
-
-      put $ execState maxMatch st
-      encode
-
+encode
+  :: forall stream. (Streamable stream, Eq (Piece stream))
+  => stream
+  -> [Match (Piece stream)]
+encode s = let (_, result) = encode' (Progress Empty s) [] in reverse result
   where 
-    runMatch :: (Natural, Dict (Piece a)) -> LZ77State a (Piece a)
-    runMatch (offset, newDict) = modify (updateDict newDict) >> findMatch offset
+    encode'
+      :: Progress stream (Piece stream)
+      -> [Match (Piece stream)]
+      -> (Progress stream (Piece stream), Encoded (Piece stream))
+    encode' progress@Progress{..} encoded = if empty remaining
+      then (progress, encoded)
+      else let result@(progress', _) = maxMatch in
+        if finished progress'
+          then result
+          else uncurry encode' result
 
-    findMatch :: Natural -> LZ77State a (Piece a)
-    findMatch offset = findMatch' 0
       where
-        -- FIXME: horribly inefficient.
-        findMatch' :: Natural -> LZ77State a (Piece a)
-        findMatch' currLen = do
-          LZ77{..} <- get
-          let dict' = take dictSize $ dict ++ unpack remaining
-          case uncons remaining of
-            Nothing -> error "Empty input to compression!"
-            Just (x, xs) -> do
-              let match = Match offset currLen x
-                  encoded' = match:encoded
-                  finish = put (LZ77 encoded' dict' xs) >> return match
-              case dict of
-                [] -> finish
-                (d:ds) -> if d == x && not (isSingleton xs)
-                  then do
-                    put $ LZ77 encoded (ds ++ [x]) xs
-                    findMatch' (currLen + 1)
-                  else finish
+        dicts :: [(Natural, Dict (Piece stream))]
+        dicts = zip [1..] dictPieces
+          where dictExtension = List.take (dictSize - 1) (unpack remaining)
+                maxDict = dict >< fromList dictExtension
+                dictPieces = toList $ tails maxDict
+        
+        encodeOnce
+          :: Natural
+          -> (Progress stream (Piece stream), Encoded (Piece stream))
+          -> (Progress stream (Piece stream), Encoded (Piece stream))
+        encodeOnce offset = encodeStep 0
+          where
+            encodeStep
+              :: Natural
+              -> (Progress stream (Piece stream), Encoded (Piece stream))
+              -> (Progress stream (Piece stream), Encoded (Piece stream))
+            encodeStep currLen (Progress currDict remain, currEncoded) = 
+              case uncons remain of
+              Nothing -> error "Empty input to compression!"
+              Just (x, xs) -> let 
+                match = Match offset currLen x
+                in case currDict of
+                  Empty -> (Progress (singleton x) xs, match:currEncoded)
+                  d:<ds -> let newDict = ds |> x
+                    in if d == x && not (isSingleton xs)
+                      then encodeStep (currLen + 1) (Progress newDict xs, currEncoded)
+                      else (Progress newDict xs, match:currEncoded)
+        
+        maxMatch :: (Progress stream (Piece stream), Encoded (Piece stream))
+        maxMatch = foldr1 max' matches
+          where max' :: Ord b => (a, [b]) -> (a, [b]) -> (a,[b])
+                max' (_, []) _ = error "This should never happen"
+                max' _ (_, []) = error "This should never happen"
+                max' match1@(_,x:_) match2@(_,y:_) =
+                  if x <= y then match2 else match1
+                
+                changeDict
+                  :: Dict (Piece stream)
+                  -> (Progress stream (Piece stream), Encoded (Piece stream))
+                changeDict dict' = (Progress dict' remaining, encoded)
+
+                fmapSnd :: (b -> c) -> (a, b) -> (a, c)
+                fmapSnd f (a, b) = (a, f b)
+
+                matches
+                  :: [(Progress stream (Piece stream), Encoded (Piece stream))]
+                matches = map (uncurry encodeOnce . fmapSnd changeDict) dicts
+
+decode :: Encoded a -> [a]
+decode = toList . decode' Seq.empty Seq.empty
+  where
+    decode' :: Dict a -> Seq a -> Encoded a -> Seq a
+    decode' _ done [] = done
+    decode' dict done (Match{..}:ms) = decode' dict' (done >< match) ms
+      where end = offset + matchLen + 1
+            decoded = subseq offset end dict
+            match = decoded |> next
+            dict' = take dictSize $ dict >< match
 
 newtype Encoding a = Encoding [Match a] deriving (Show)
 
 instance Base.Encoding Encoding where
-  compress = undefined
+  compress = Encoding . encode
 
-  decompress = undefined
+  decompress (Encoding encoded) = decode encoded
